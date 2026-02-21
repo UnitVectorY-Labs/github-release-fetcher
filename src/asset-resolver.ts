@@ -1,3 +1,5 @@
+import { stripVersionPrefix } from './version';
+
 /**
  * Resolves a user-provided pattern with placeholders into a concrete asset name,
  * then matches exactly one asset from the release.
@@ -19,8 +21,7 @@ export function expandPattern(
   osName: string,
   arch: string
 ): string {
-  // Strip leading 'v' from version for the placeholder replacement
-  const versionNoV = version.replace(/^v/, '');
+  const versionNoV = stripVersionPrefix(version);
 
   return pattern
     .replace(/\{version\}/g, versionNoV)

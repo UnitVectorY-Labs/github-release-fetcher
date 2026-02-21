@@ -88,18 +88,28 @@ export function getArchiveExtension(name: string): string | null {
 
 /**
  * Recursively make files executable in a directory.
+ * Only targets files that appear to be binaries (no common text/config extensions).
  */
 function makeExecutable(dir: string): void {
+  const nonExecutableExts = new Set([
+    '.txt', '.md', '.json', '.yaml', '.yml', '.toml',
+    '.cfg', '.conf', '.ini', '.xml', '.html', '.css',
+    '.csv', '.log', '.rst', '.adoc'
+  ]);
+
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       makeExecutable(fullPath);
     } else if (entry.isFile()) {
-      try {
-        fs.chmodSync(fullPath, 0o755);
-      } catch {
-        // Ignore chmod errors
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!nonExecutableExts.has(ext)) {
+        try {
+          fs.chmodSync(fullPath, 0o755);
+        } catch {
+          // Ignore chmod errors
+        }
       }
     }
   }

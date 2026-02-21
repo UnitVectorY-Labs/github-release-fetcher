@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
+import { stripVersionPrefix } from './version';
 
 /**
  * Verifies build attestation for a downloaded asset using GitHub CLI.
@@ -61,7 +62,7 @@ export async function verifyAttestation(
 
     // Verify the attestation references the expected version
     const versionTag = version.startsWith('v') ? version : `v${version}`;
-    const versionNoV = version.replace(/^v/, '');
+    const versionNoV = stripVersionPrefix(version);
 
     let versionFound = false;
     for (const att of attestations) {

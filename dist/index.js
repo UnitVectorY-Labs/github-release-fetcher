@@ -32724,25 +32724,21 @@ module.exports = require("zlib");
 /***/ }),
 
 /***/ 3464:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-/**
- * Resolves a user-provided pattern with placeholders into a concrete asset name,
- * then matches exactly one asset from the release.
- */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.expandPattern = expandPattern;
 exports.patternToRegex = patternToRegex;
 exports.resolveAsset = resolveAsset;
+const version_1 = __nccwpck_require__(9629);
 /**
  * Replaces placeholders in the pattern with actual values.
  * Supported placeholders: {version}, {os}, {arch}
  */
 function expandPattern(pattern, version, osName, arch) {
-    // Strip leading 'v' from version for the placeholder replacement
-    const versionNoV = version.replace(/^v/, '');
+    const versionNoV = (0, version_1.stripVersionPrefix)(version);
     return pattern
         .replace(/\{version\}/g, versionNoV)
         .replace(/\{os\}/g, osName)
@@ -32821,6 +32817,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.verifyAttestation = verifyAttestation;
 const core = __importStar(__nccwpck_require__(7484));
 const exec = __importStar(__nccwpck_require__(5236));
+const version_1 = __nccwpck_require__(9629);
 /**
  * Verifies build attestation for a downloaded asset using GitHub CLI.
  * Requires the `gh` CLI to be available on the runner.
@@ -32864,7 +32861,7 @@ async function verifyAttestation(owner, repo, version, assetPath, token) {
         }
         // Verify the attestation references the expected version
         const versionTag = version.startsWith('v') ? version : `v${version}`;
-        const versionNoV = version.replace(/^v/, '');
+        const versionNoV = (0, version_1.stripVersionPrefix)(version);
         let versionFound = false;
         for (const att of attestations) {
             const predicate = att?.verificationResult?.statement?.predicate;
@@ -33030,8 +33027,14 @@ function getArchiveExtension(name) {
 }
 /**
  * Recursively make files executable in a directory.
+ * Only targets files that appear to be binaries (no common text/config extensions).
  */
 function makeExecutable(dir) {
+    const nonExecutableExts = new Set([
+        '.txt', '.md', '.json', '.yaml', '.yml', '.toml',
+        '.cfg', '.conf', '.ini', '.xml', '.html', '.css',
+        '.csv', '.log', '.rst', '.adoc'
+    ]);
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
@@ -33039,11 +33042,14 @@ function makeExecutable(dir) {
             makeExecutable(fullPath);
         }
         else if (entry.isFile()) {
-            try {
-                fs.chmodSync(fullPath, 0o755);
-            }
-            catch {
-                // Ignore chmod errors
+            const ext = path.extname(entry.name).toLowerCase();
+            if (!nonExecutableExts.has(ext)) {
+                try {
+                    fs.chmodSync(fullPath, 0o755);
+                }
+                catch {
+                    // Ignore chmod errors
+                }
             }
         }
     }
@@ -33230,6 +33236,23 @@ function resolveArch(override) {
     return override !== '' ? override : detectArch();
 }
 //# sourceMappingURL=platform.js.map
+
+/***/ }),
+
+/***/ 9629:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.stripVersionPrefix = stripVersionPrefix;
+/**
+ * Strips the leading 'v' from a version string if present.
+ */
+function stripVersionPrefix(version) {
+    return version.replace(/^v/, '');
+}
+//# sourceMappingURL=version.js.map
 
 /***/ }),
 
