@@ -1,0 +1,48 @@
+name: 'GitHub Release Fetcher'
+description: 'Downloads one release asset from a specified GitHub repo release, optionally verifies build attestation.'
+author: 'UnitVectorY-Labs'
+
+inputs:
+  owner:
+    description: 'GitHub repository owner (organization or user)'
+    required: true
+  repo:
+    description: 'GitHub repository name'
+    required: true
+  version:
+    description: 'Release tag/version to download (e.g. v1.0.0)'
+    required: true
+  asset_pattern:
+    description: >
+      Glob-like pattern to match the release asset name.
+      Supports placeholders: {version}, {os}, {arch}.
+      Example: 'mytool-{version}-{os}-{arch}.tar.gz'
+    required: true
+  os:
+    description: 'Override the detected runner OS (e.g. linux, darwin, windows)'
+    required: false
+    default: ''
+  arch:
+    description: 'Override the detected runner architecture (e.g. amd64, arm64)'
+    required: false
+    default: ''
+  verify_attestation:
+    description: 'Whether to verify build attestation for the downloaded asset'
+    required: false
+    default: 'false'
+  token:
+    description: 'GitHub token for API access'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  asset_path:
+    description: 'Path to the downloaded asset or extracted binary'
+  asset_name:
+    description: 'Name of the downloaded asset'
+  version_resolved:
+    description: 'The resolved version/tag of the release'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
