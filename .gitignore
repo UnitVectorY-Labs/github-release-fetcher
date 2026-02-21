@@ -1,0 +1,16 @@
+node_modules/
+lib/
+*.js
+*.js.map
+*.d.ts
+!jest.config.js
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
