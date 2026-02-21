@@ -53,6 +53,9 @@ export async function downloadAndExtract(
   }
 
   // Not an archive - just a raw binary
+  // Sanitize asset name to prevent path traversal
+  const sanitizedName = sanitizeAssetName(assetName);
+
   // Move to a directory with a clean name
   const destDir = path.join(
     os.tmpdir(),
@@ -60,7 +63,7 @@ export async function downloadAndExtract(
     Date.now().toString()
   );
   fs.mkdirSync(destDir, { recursive: true });
-  const destPath = path.join(destDir, assetName);
+  const destPath = path.join(destDir, sanitizedName);
   fs.copyFileSync(downloadedPath, destPath);
 
   // Make executable on Unix
@@ -70,6 +73,19 @@ export async function downloadAndExtract(
 
   core.info(`Downloaded to: ${destPath}`);
   return destPath;
+}
+
+/**
+ * Sanitize an asset name to prevent path traversal.
+ * Extracts only the base filename and rejects dangerous patterns.
+ */
+export function sanitizeAssetName(name: string): string {
+  // Use only the basename to strip any directory components
+  const base = path.basename(name);
+  if (!base || base === '.' || base === '..') {
+    throw new Error(`Invalid asset name: '${name}'`);
+  }
+  return base;
 }
 
 /**

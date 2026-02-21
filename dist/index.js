@@ -32950,6 +32950,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.downloadAndExtract = downloadAndExtract;
+exports.sanitizeAssetName = sanitizeAssetName;
 exports.getArchiveExtension = getArchiveExtension;
 const core = __importStar(__nccwpck_require__(7484));
 const tc = __importStar(__nccwpck_require__(3472));
@@ -32994,10 +32995,12 @@ async function downloadAndExtract(downloadUrl, assetName, token) {
         return extractedDir;
     }
     // Not an archive - just a raw binary
+    // Sanitize asset name to prevent path traversal
+    const sanitizedName = sanitizeAssetName(assetName);
     // Move to a directory with a clean name
     const destDir = path.join(os.tmpdir(), 'github-release-fetcher', Date.now().toString());
     fs.mkdirSync(destDir, { recursive: true });
-    const destPath = path.join(destDir, assetName);
+    const destPath = path.join(destDir, sanitizedName);
     fs.copyFileSync(downloadedPath, destPath);
     // Make executable on Unix
     if (os.platform() !== 'win32') {
@@ -33005,6 +33008,18 @@ async function downloadAndExtract(downloadUrl, assetName, token) {
     }
     core.info(`Downloaded to: ${destPath}`);
     return destPath;
+}
+/**
+ * Sanitize an asset name to prevent path traversal.
+ * Extracts only the base filename and rejects dangerous patterns.
+ */
+function sanitizeAssetName(name) {
+    // Use only the basename to strip any directory components
+    const base = path.basename(name);
+    if (!base || base === '.' || base === '..') {
+        throw new Error(`Invalid asset name: '${name}'`);
+    }
+    return base;
 }
 /**
  * Detect archive extension from the asset name.

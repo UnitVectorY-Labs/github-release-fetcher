@@ -1,6 +1,29 @@
-import { getArchiveExtension } from '../src/download';
+import { getArchiveExtension, sanitizeAssetName } from '../src/download';
 
 describe('download', () => {
+  describe('sanitizeAssetName', () => {
+    it('returns simple filename unchanged', () => {
+      expect(sanitizeAssetName('tool-binary')).toBe('tool-binary');
+    });
+
+    it('strips directory traversal', () => {
+      expect(sanitizeAssetName('../../etc/passwd')).toBe('passwd');
+    });
+
+    it('strips directory components', () => {
+      expect(sanitizeAssetName('some/path/tool')).toBe('tool');
+    });
+
+    it('throws on empty name', () => {
+      expect(() => sanitizeAssetName('')).toThrow(/Invalid asset name/);
+    });
+
+    it('throws on dot-only name', () => {
+      expect(() => sanitizeAssetName('.')).toThrow(/Invalid asset name/);
+      expect(() => sanitizeAssetName('..')).toThrow(/Invalid asset name/);
+    });
+  });
+
   describe('getArchiveExtension', () => {
     it('detects .tar.gz', () => {
       expect(getArchiveExtension('tool-1.0.0-linux-amd64.tar.gz')).toBe('.tar.gz');
