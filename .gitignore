@@ -1,9 +1,5 @@
 node_modules/
 lib/
-*.js
-*.js.map
-*.d.ts
-!jest.config.js
 
 # IDE
 .idea/
